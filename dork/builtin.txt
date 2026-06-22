@@ -1,0 +1,162 @@
+# ── .env file exposure ────────────────────────────────────────────────────────
+filetype:env "DB_PASSWORD"
+filetype:env "MAIL_PASSWORD"
+filetype:env "APP_SECRET"
+filetype:env "AWS_SECRET"
+filetype:env "SMTP_PASSWORD"
+filetype:env "API_KEY"
+inurl:"/.env" "APP_KEY"
+inurl:"/.env" "DB_PASSWORD"
+inurl:"/.env" "SECRET_KEY"
+inurl:"/.env" "SMTP"
+intitle:"index of" ".env"
+intitle:"index of" "/.env"
+ext:env intext:password
+ext:env intext:smtp
+ext:env intext:mail_password
+
+# ── SMTP / Email credentials ──────────────────────────────────────────────────
+intext:"MAIL_HOST" intext:"MAIL_PASSWORD" filetype:env
+intext:"SMTP_HOST" intext:"SMTP_PASSWORD" filetype:env
+intext:"smtp.gmail.com" intext:"password" filetype:env
+intext:"smtp.sendgrid.com" filetype:env
+intext:"smtp.mailgun.org" filetype:env
+intext:"smtp.postmarkapp.com" filetype:env
+intext:"MAIL_USERNAME" intext:"MAIL_PASSWORD" ext:env
+inurl:config intext:"smtp" intext:"password" ext:php
+inurl:config.php intext:"smtp" intext:"password"
+"smtp_pass" OR "smtp_password" filetype:env
+"SENDGRID_API_KEY" filetype:env
+"MAILGUN_SECRET" filetype:env
+
+# ── AWS credentials ───────────────────────────────────────────────────────────
+intext:"AWS_ACCESS_KEY_ID" intext:"AWS_SECRET_ACCESS_KEY" filetype:env
+intext:"AKIA" intext:"secret" filetype:env
+inurl:credentials filetype:env intext:"aws"
+"aws_access_key_id" ext:cfg
+"aws_access_key_id" ext:env
+"aws_secret_access_key" ext:txt
+filetype:env intext:"AWS_REGION"
+
+# ── Stripe / Payment ──────────────────────────────────────────────────────────
+intext:"sk_live_" filetype:env
+intext:"STRIPE_SECRET_KEY" filetype:env
+intext:"STRIPE_SECRET" filetype:env
+"sk_live_" filetype:env
+"pk_live_" filetype:env
+
+# ── GitHub tokens ─────────────────────────────────────────────────────────────
+intext:"GITHUB_TOKEN" filetype:env
+intext:"GH_TOKEN" filetype:env
+"ghp_" filetype:env
+"github_token" ext:env
+
+# ── Twilio ────────────────────────────────────────────────────────────────────
+intext:"TWILIO_AUTH_TOKEN" filetype:env
+intext:"TWILIO_ACCOUNT_SID" filetype:env
+"twilio_auth_token" ext:env
+
+# ── OpenAI / AI keys ──────────────────────────────────────────────────────────
+intext:"OPENAI_API_KEY" filetype:env
+"sk-" "openai" filetype:env
+intext:"ANTHROPIC_API_KEY" filetype:env
+
+# ── Slack / Discord ───────────────────────────────────────────────────────────
+intext:"SLACK_TOKEN" filetype:env
+intext:"xoxb-" filetype:env
+intext:"DISCORD_TOKEN" filetype:env
+intext:"BOT_TOKEN" filetype:env
+"xoxb-" ext:env
+
+# ── Database credentials ──────────────────────────────────────────────────────
+intext:"DB_PASSWORD" intext:"DB_USERNAME" filetype:env
+intext:"DATABASE_URL" filetype:env
+intext:"MYSQL_ROOT_PASSWORD" filetype:env
+intext:"POSTGRES_PASSWORD" filetype:env
+intext:"MONGODB_URI" filetype:env
+"database_url" filetype:env intext:"postgres"
+"database_url" filetype:env intext:"mysql"
+inurl:database.php intext:password
+
+# ── Config file exposure ──────────────────────────────────────────────────────
+inurl:wp-config.php intext:"DB_PASSWORD"
+inurl:config.php intext:"db_pass"
+intitle:"index of" "config.php"
+intitle:"index of" "wp-config.php"
+inurl:.git/config intext:"password"
+inurl:.git/config intext:"token"
+ext:cfg intext:"password" intext:"username"
+ext:conf intext:"password"
+ext:ini intext:"password" intext:"smtp"
+ext:xml intext:"password" intext:"smtp"
+
+# ── Backup files ──────────────────────────────────────────────────────────────
+intitle:"index of" "backup.sql"
+intitle:"index of" "database.sql"
+intitle:"index of" ".sql"
+intitle:"index of" ".bak"
+filetype:sql intext:password
+filetype:sql intext:email intext:password
+ext:sql intext:"INSERT INTO" intext:"password"
+intitle:"index of" "*.env.bak"
+intitle:"index of" "dump.sql"
+inurl:backup filetype:sql
+
+# ── Log files with credentials ────────────────────────────────────────────────
+ext:log intext:"password"
+ext:log intext:"api_key"
+ext:log intext:"Authorization:"
+filetype:log intext:"smtp"
+filetype:log intext:"password"
+
+# ── Laravel / PHP frameworks ──────────────────────────────────────────────────
+intext:"APP_KEY=base64:" filetype:env
+intext:"APP_ENV=production" intext:"APP_DEBUG=true" filetype:env
+inurl:"/.env" intext:"laravel"
+intext:"DB_CONNECTION=mysql" intext:"DB_PASSWORD" filetype:env
+
+# ── Exposed admin panels ──────────────────────────────────────────────────────
+inurl:/phpmyadmin intitle:"phpMyAdmin"
+inurl:/admin intitle:"Admin Panel" intext:"password"
+inurl:/wp-admin intitle:"WordPress"
+intitle:"Plesk" inurl:login
+intitle:"cPanel" inurl:2083
+intitle:"WHM" inurl:2086
+
+# ── Sensitive file extensions on servers ──────────────────────────────────────
+intitle:"index of" "id_rsa"
+intitle:"index of" "*.pem"
+intitle:"index of" "*.key"
+intitle:"index of" "*.ppk"
+filetype:pem intext:"PRIVATE KEY"
+filetype:ppk intext:"private"
+
+# ── Pastebin / paste sites ────────────────────────────────────────────────────
+site:pastebin.com intext:"smtp" intext:"password"
+site:pastebin.com intext:"aws_access_key"
+site:pastebin.com intext:"MAIL_PASSWORD"
+site:pastebin.com "SENDGRID_API_KEY"
+site:pastebin.com "stripe_secret"
+site:ghostbin.co intext:"smtp" intext:"password"
+site:rentry.co intext:"smtp" intext:"password"
+
+# ── GitHub (public repos with leaked secrets) ─────────────────────────────────
+site:github.com intext:"SMTP_PASSWORD" ext:env
+site:github.com intext:"AWS_SECRET_ACCESS_KEY" ext:env
+site:github.com "remove" "password" ext:env
+site:github.com filename:.env "DB_PASSWORD"
+site:github.com filename:.env "STRIPE_SECRET"
+site:github.com filename:.env "SENDGRID"
+site:github.com filename:credentials "aws_access_key_id"
+
+# ── User-provided dorks (ebay/SQL focused) ────────────────────────────────────
+filetype:sql intext:ebay
+filetype:sql intext:seller
+intitle:"index of" "backup.sql"
+intitle:"index of" "database.sql"
+site:pastebin.com intext:ebay
+intitle:"index of" "backup.sql" intext:ebay
+intitle:"index of" "database.sql" intext:seller
+site:pastebin.com intext:ebay intext:email
+ext:sql intext:password intext:ebay
+site:mediafire.com "ebay" "sql"

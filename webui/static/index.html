@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>env-checker</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0d1117;--surface:#161b22;--surface2:#21262d;
+  --border:#30363d;--blue:#58a6ff;--green:#3fb950;
+  --red:#f85149;--yellow:#e3b341;--purple:#bc8cff;
+  --text:#e6edf3;--muted:#7d8590;--font:'Segoe UI',system-ui,sans-serif;
+}
+body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14px;min-height:100vh}
+a{color:var(--blue);text-decoration:none}
+
+/* ── layout ── */
+header{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px;display:flex;align-items:center;gap:16px;height:52px}
+header h1{font-size:16px;font-weight:600;letter-spacing:.5px}
+header h1 span{color:var(--blue)}
+.tab-btn{padding:6px 14px;font-size:13px;border:none;background:none;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px}
+.tab-btn.active{color:var(--text);border-bottom-color:var(--blue)}
+.tab-btn:hover{color:var(--text)}
+#status-badge{margin-left:auto;display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
+#status-dot{width:8px;height:8px;border-radius:50%;background:var(--muted)}
+#status-dot.running{background:var(--green);animation:pulse 1.2s infinite}
+#status-dot.done{background:var(--blue)}
+#status-dot.error{background:var(--red)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* daemon tab */
+#daemon-view{display:none;height:calc(100vh - 52px);display:none;grid-template-columns:360px 1fr;overflow:hidden}
+#daemon-view.active{display:grid}
+#daemon-config-panel{border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;padding:20px}
+#daemon-config-panel h2{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:12px}
+#daemon-cfg-editor{width:100%;flex:1;min-height:420px;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:12px;font-family:monospace;font-size:12px;resize:vertical;outline:none}
+#daemon-cfg-editor:focus{border-color:var(--blue)}
+.daemon-actions{display:flex;gap:8px;margin-top:12px}
+.btn-daemon-start{flex:1;padding:9px;background:var(--green);color:#000;font-weight:600;font-size:13px;border:none;border-radius:7px;cursor:pointer}
+.btn-daemon-start:hover{opacity:.85}
+.btn-daemon-start:disabled{opacity:.4;cursor:not-allowed}
+.btn-daemon-stop{flex:1;padding:9px;background:var(--red);color:#fff;font-weight:600;font-size:13px;border:none;border-radius:7px;cursor:pointer;display:none}
+.btn-daemon-stop:hover{opacity:.85}
+.btn-save-cfg{padding:9px 14px;background:var(--surface2);color:var(--text);font-size:13px;border:1px solid var(--border);border-radius:7px;cursor:pointer}
+.btn-save-cfg:hover{background:var(--surface)}
+#daemon-log-panel{display:flex;flex-direction:column;overflow:hidden;padding:20px}
+#daemon-log-panel h2{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:12px;flex-shrink:0}
+#daemon-status-bar{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-shrink:0}
+#daemon-dot{width:8px;height:8px;border-radius:50%;background:var(--muted)}
+#daemon-dot.running{background:var(--green);animation:pulse 1.2s infinite}
+#daemon-state-txt{font-size:12px;color:var(--muted)}
+#daemon-log-wrap{flex:1;overflow-y:auto;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px;font-family:monospace;font-size:12px}
+.log-line{padding:1px 0;color:var(--muted);line-height:1.5}
+.log-line.found{color:var(--green)}
+.log-line.valid{color:var(--yellow);font-weight:600}
+.log-line.error{color:var(--red)}
+
+main{display:grid;grid-template-columns:340px 1fr;gap:0;height:calc(100vh - 52px)}
+@media(max-width:860px){main{grid-template-columns:1fr;height:auto}}
+
+/* ── left panel ── */
+.panel-left{border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto}
+section{padding:16px 20px;border-bottom:1px solid var(--border)}
+section h2{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:12px}
+
+/* file drop zone */
+#drop-zone{position:relative;border:2px dashed var(--border);border-radius:8px;transition:border-color .2s}
+#drop-zone.drag-over{border-color:var(--blue)}
+#hosts-ta{width:100%;min-height:140px;background:var(--surface2);color:var(--text);border:none;outline:none;resize:vertical;font-family:monospace;font-size:12px;padding:10px;border-radius:6px}
+.file-row{display:flex;gap:8px;margin-top:8px;align-items:center}
+#file-input{display:none}
+.btn-sm{padding:5px 10px;font-size:12px;border-radius:6px;border:1px solid var(--border);background:var(--surface2);color:var(--text);cursor:pointer}
+.btn-sm:hover{background:var(--surface);border-color:var(--muted)}
+#file-name{font-size:11px;color:var(--muted)}
+
+/* settings grid */
+.settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.field label{display:block;font-size:11px;color:var(--muted);margin-bottom:4px}
+.field input[type=number],.field input[type=text]{width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:6px 8px;font-size:13px;outline:none}
+.field input:focus{border-color:var(--blue)}
+.field.wide{grid-column:1/-1}
+.toggles{display:flex;flex-direction:column;gap:8px}
+.toggle{display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;user-select:none}
+.toggle input{accent-color:var(--blue);width:15px;height:15px}
+
+/* action buttons */
+.btn-primary{width:100%;padding:10px;background:var(--blue);color:#000;font-weight:600;font-size:14px;border:none;border-radius:8px;cursor:pointer;transition:opacity .15s}
+.btn-primary:hover{opacity:.85}
+.btn-primary:disabled{opacity:.4;cursor:not-allowed}
+.btn-stop{background:var(--red);color:#fff;width:100%;padding:10px;font-weight:600;font-size:14px;border:none;border-radius:8px;cursor:pointer;margin-top:8px;display:none;transition:opacity .15s}
+.btn-stop:hover{opacity:.85}
+
+/* ── right panel ── */
+.panel-right{display:flex;flex-direction:column;overflow:hidden}
+
+/* progress */
+#progress-section{padding:20px 24px;border-bottom:1px solid var(--border)}
+#progress-section h2{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:14px}
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px}
+.stat-card .val{font-size:22px;font-weight:700;font-variant-numeric:tabular-nums}
+.stat-card .lbl{font-size:11px;color:var(--muted);margin-top:2px}
+.stat-card.blue .val{color:var(--blue)}
+.stat-card.green .val{color:var(--green)}
+.stat-card.yellow .val{color:var(--yellow)}
+.progress-bar-wrap{background:var(--surface2);border-radius:4px;height:6px;overflow:hidden;margin-bottom:8px}
+#progress-bar{height:100%;background:var(--blue);width:0%;transition:width .4s}
+.progress-meta{display:flex;justify-content:space-between;font-size:11px;color:var(--muted)}
+.rate-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}
+.rate-item{text-align:center}
+.rate-item .rv{font-size:15px;font-weight:600;font-variant-numeric:tabular-nums;color:var(--text)}
+.rate-item .rl{font-size:10px;color:var(--muted);margin-top:1px}
+
+/* idle message */
+#idle-msg{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;color:var(--muted);gap:12px;padding:40px}
+#idle-msg svg{opacity:.3}
+#idle-msg p{font-size:13px}
+
+/* results */
+#results-section{flex:1;display:flex;flex-direction:column;overflow:hidden;padding:16px 24px}
+#results-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-shrink:0}
+#results-header h2{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--muted)}
+.results-actions{display:flex;gap:8px}
+.btn-icon{padding:5px 10px;font-size:12px;border-radius:6px;border:1px solid var(--border);background:var(--surface2);color:var(--text);cursor:pointer;display:none}
+.btn-icon:hover{background:var(--surface)}
+#results-wrap{flex:1;overflow-y:auto}
+table{width:100%;border-collapse:collapse;font-size:12px}
+thead th{position:sticky;top:0;background:var(--surface);padding:8px 10px;text-align:left;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);border-bottom:1px solid var(--border)}
+tbody tr{border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s}
+tbody tr:hover{background:var(--surface)}
+td{padding:8px 10px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.badge{display:inline-block;padding:2px 7px;border-radius:12px;font-size:10px;font-weight:600;text-transform:uppercase}
+.badge.valid{background:rgba(63,185,80,.18);color:var(--green)}
+.badge.unknown{background:rgba(227,179,65,.18);color:var(--yellow)}
+.badge.https{color:var(--blue)}
+.badge.http{color:var(--muted)}
+.badge.https-dns{color:var(--purple)}
+#no-results{display:flex;align-items:center;justify-content:center;height:80px;color:var(--muted);font-size:13px}
+
+/* modal / detail panel */
+#modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;align-items:center;justify-content:center}
+#modal-overlay.open{display:flex}
+#modal{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px;max-width:700px;width:90%;max-height:80vh;overflow-y:auto;position:relative}
+#modal h3{font-size:15px;margin-bottom:4px}
+#modal .meta{font-size:12px;color:var(--muted);margin-bottom:16px}
+#modal pre{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px;font-size:12px;overflow:auto;max-height:50vh;white-space:pre-wrap;word-break:break-all}
+#modal-close{position:absolute;top:16px;right:16px;background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;line-height:1}
+#modal-close:hover{color:var(--text)}
+.indicators-list{margin-bottom:12px}
+.indicator{background:rgba(88,166,255,.1);border:1px solid rgba(88,166,255,.3);color:var(--blue);border-radius:6px;padding:4px 8px;font-size:11px;font-family:monospace;margin-bottom:4px}
+
+/* vuln scan */
+#vuln-panel{margin-top:14px;border-top:1px solid var(--border);padding-top:14px}
+.btn-vulnscan{padding:7px 14px;background:var(--yellow);color:#000;font-weight:600;font-size:13px;border:none;border-radius:7px;cursor:pointer;transition:opacity .15s}
+.btn-vulnscan:hover{opacity:.85}
+.btn-vulnscan:disabled{opacity:.4;cursor:not-allowed}
+.vuln-row{padding:8px 10px;margin-bottom:6px;border-radius:6px;font-size:12px;border-left:3px solid}
+.vuln-row.critical{background:rgba(248,81,73,.12);border-color:var(--red)}
+.vuln-row.high{background:rgba(227,179,65,.1);border-color:var(--yellow)}
+.vuln-row.medium{background:rgba(88,166,255,.1);border-color:var(--blue)}
+.vuln-row.low{background:rgba(125,133,144,.1);border-color:var(--muted)}
+.vuln-row .vuln-title{font-weight:600;margin-bottom:3px}
+.vuln-row .vuln-sev{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;float:right}
+.vuln-row.critical .vuln-sev{color:var(--red)}
+.vuln-row.high .vuln-sev{color:var(--yellow)}
+.vuln-row.medium .vuln-sev{color:var(--blue)}
+.vuln-row.low .vuln-sev{color:var(--muted)}
+.vuln-row .vuln-url{color:var(--muted);font-family:monospace;font-size:11px;margin-bottom:3px}
+.vuln-row .vuln-detail{color:var(--muted);font-size:11px}
+.vuln-summary{font-size:12px;color:var(--muted);margin-bottom:8px}
+
+/* credential check */
+#modal-validate-wrap{margin-top:14px;border-top:1px solid var(--border);padding-top:14px}
+.btn-validate{padding:7px 16px;background:var(--purple);color:#fff;font-weight:600;font-size:13px;border:none;border-radius:7px;cursor:pointer;transition:opacity .15s}
+.btn-validate:hover{opacity:.85}
+.btn-validate:disabled{opacity:.4;cursor:not-allowed}
+#cred-results{margin-top:12px;display:none}
+.cred-row{display:flex;align-items:flex-start;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);font-size:12px}
+.cred-row:last-child{border-bottom:none}
+.cred-svc{min-width:90px;font-weight:600;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.5px;padding-top:1px}
+.cred-msg{flex:1;font-family:monospace;word-break:break-all}
+.cred-msg.ok{color:var(--green)}
+.cred-msg.fail{color:var(--red)}
+.cred-msg.skip{color:var(--muted)}
+.cred-summary{font-size:12px;font-weight:600;margin-bottom:8px;padding:6px 10px;border-radius:6px}
+.cred-summary.ok{background:rgba(63,185,80,.15);color:var(--green);border:1px solid rgba(63,185,80,.3)}
+.cred-summary.none{background:rgba(125,133,144,.1);color:var(--muted);border:1px solid var(--border)}
+</style>
+</head>
+<body>
+
+<header>
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#58a6ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+  <h1><span>env</span>-checker</h1>
+  <button class="tab-btn active" onclick="switchTab('scan')" id="tab-scan">Scan</button>
+  <button class="tab-btn" onclick="switchTab('daemon')" id="tab-daemon">Daemon</button>
+  <div id="status-badge">
+    <div id="status-dot"></div>
+    <span id="status-text">Idle</span>
+  </div>
+</header>
+
+<!-- ── DAEMON VIEW ── -->
+<div id="daemon-view">
+
+  <div id="daemon-config-panel">
+    <h2>Daemon Config (daemon.json)</h2>
+    <textarea id="daemon-cfg-editor" spellcheck="false"></textarea>
+    <div class="daemon-actions">
+      <button class="btn-save-cfg" onclick="saveDaemonConfig()">💾 Save</button>
+      <button class="btn-daemon-start" id="btn-daemon-start" onclick="startDaemon()">▶ Start Daemon</button>
+      <button class="btn-daemon-stop" id="btn-daemon-stop" onclick="stopDaemon()">■ Stop</button>
+    </div>
+    <div style="margin-top:10px;display:flex;gap:8px">
+      <button class="btn-save-cfg" id="btn-update-dorks" onclick="updateDorks()" style="flex:1;background:rgba(188,140,255,.15);border-color:var(--purple);color:var(--purple)">🔄 Update Dorks from ExploitDB / NVD / GitHub</button>
+    </div>
+    <div id="dork-update-status" style="font-size:11px;color:var(--muted);margin-top:6px;min-height:14px"></div>
+    <div style="margin-top:8px;font-size:11px;color:var(--muted)" id="dork-count"></div>
+  </div>
+
+  <div id="daemon-log-panel">
+    <div id="daemon-status-bar">
+      <div id="daemon-dot"></div>
+      <span id="daemon-state-txt">Idle</span>
+    </div>
+    <h2>Live Log</h2>
+    <div id="daemon-log-wrap"></div>
+  </div>
+
+</div>
+
+<div id="scan-view">
+<main>
+  <!-- ── LEFT PANEL ── -->
+  <div class="panel-left">
+
+    <section>
+      <h2>Targets</h2>
+
+      <!-- Auto-discover from domain -->
+      <div style="display:flex;gap:6px;margin-bottom:10px">
+        <input type="text" id="discover-domain" placeholder="example.com" style="flex:1;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:6px 8px;font-size:13px;outline:none" onfocus="this.style.borderColor='var(--blue)'" onblur="this.style.borderColor='var(--border)'" onkeydown="if(event.key==='Enter')discoverHosts()">
+        <button class="btn-sm" id="btn-discover" onclick="discoverHosts()" style="white-space:nowrap">🔍 Discover</button>
+      </div>
+      <div id="discover-status" style="font-size:11px;color:var(--muted);margin-bottom:6px;min-height:14px"></div>
+
+      <div id="drop-zone">
+        <textarea id="hosts-ta" placeholder="Paste IPs, hostnames, or CIDR ranges&#10;One per line&#10;&#10;— OR type a domain above and click Discover —&#10;&#10;example.com&#10;10.0.0.0/24"></textarea>
+      </div>
+      <div class="file-row">
+        <button class="btn-sm" onclick="document.getElementById('file-input').click()">Upload file</button>
+        <input type="file" id="file-input" accept=".txt,.csv">
+        <span id="file-name"></span>
+      </div>
+    </section>
+
+    <section>
+      <h2>Settings</h2>
+      <div class="settings-grid">
+        <div class="field">
+          <label>Threads</label>
+          <input type="number" id="f-threads" value="8" min="1">
+        </div>
+        <div class="field">
+          <label>Goroutines</label>
+          <input type="number" id="f-goroutines" value="900" min="1">
+        </div>
+        <div class="field">
+          <label>Timeout (s)</label>
+          <input type="number" id="f-timeout" value="30" min="1">
+        </div>
+        <div class="field">
+          <label>DNS Timeout (s)</label>
+          <input type="number" id="f-dnstimeout" value="2" min="1">
+        </div>
+        <div class="field">
+          <label>Paths Limit</label>
+          <input type="number" id="f-pathslimit" value="0" min="0" title="0 = all paths">
+        </div>
+        <div class="field">
+          <label>Output Dir</label>
+          <input type="text" id="f-outputdir" value="envs">
+        </div>
+      </div>
+      <div class="toggles" style="margin-top:12px">
+        <label class="toggle"><input type="checkbox" id="f-saveunknown"> Save unknown responses</label>
+        <label class="toggle"><input type="checkbox" id="f-cidrmode"> Expand CIDR ranges</label>
+      </div>
+    </section>
+
+    <section style="border-bottom:none">
+      <button class="btn-primary" id="btn-start" onclick="startScan()">Start Scan</button>
+      <button class="btn-stop" id="btn-stop" onclick="stopScan()">Stop</button>
+    </section>
+
+  </div><!-- /panel-left -->
+
+  <!-- ── RIGHT PANEL ── -->
+  <div class="panel-right">
+
+    <div id="idle-msg">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <p>Configure a scan on the left and click <strong>Start Scan</strong>.</p>
+    </div>
+
+    <div id="progress-section" style="display:none">
+      <h2>Progress</h2>
+      <div class="stats-row">
+        <div class="stat-card blue">
+          <div class="val" id="s-hosts">0</div>
+          <div class="lbl">Hosts scanned</div>
+        </div>
+        <div class="stat-card green">
+          <div class="val" id="s-found">0</div>
+          <div class="lbl">Files found</div>
+        </div>
+        <div class="stat-card yellow">
+          <div class="val" id="s-saved">0</div>
+          <div class="lbl">Files saved</div>
+        </div>
+      </div>
+      <div class="progress-bar-wrap"><div id="progress-bar"></div></div>
+      <div class="progress-meta">
+        <span id="s-elapsed">0s</span>
+        <span id="s-requests">0 requests</span>
+      </div>
+      <div class="rate-row">
+        <div class="rate-item"><div class="rv" id="s-hps">0</div><div class="rl">hosts/s</div></div>
+        <div class="rate-item"><div class="rv" id="s-rps">0</div><div class="rl">req/s</div></div>
+        <div class="rate-item"><div class="rv" id="s-elapsed2">—</div><div class="rl">elapsed</div></div>
+        <div class="rate-item"><div class="rv" id="s-pct">—</div><div class="rl">progress</div></div>
+      </div>
+    </div>
+
+    <div id="results-section">
+      <div id="results-header">
+        <h2>Results &nbsp;<span id="results-count" style="color:var(--blue)">0</span></h2>
+        <div class="results-actions">
+          <button class="btn-icon" id="btn-download" onclick="downloadJSON()">⬇ Download JSON</button>
+          <button class="btn-icon" id="btn-clear" onclick="clearResults()">✕ Clear</button>
+        </div>
+      </div>
+      <div id="results-wrap">
+        <div id="no-results">No results yet</div>
+        <table id="results-table" style="display:none">
+          <thead>
+            <tr>
+              <th>Host</th>
+              <th>Path</th>
+              <th>Mode</th>
+              <th>Status</th>
+              <th>Preview</th>
+            </tr>
+          </thead>
+          <tbody id="results-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div><!-- /panel-right -->
+</main>
+</div><!-- /scan-view -->
+
+<!-- Detail modal -->
+<div id="modal-overlay" onclick="closeModal(event)">
+  <div id="modal">
+    <button id="modal-close" onclick="closeModal()">×</button>
+    <h3 id="modal-host"></h3>
+    <div class="meta" id="modal-meta"></div>
+    <div class="indicators-list" id="modal-indicators"></div>
+    <pre id="modal-content"></pre>
+    <div id="modal-validate-wrap">
+      <button class="btn-validate" id="btn-validate" onclick="validateCreds()">🔑 Validate Credentials</button>
+      <div id="cred-results"></div>
+    </div>
+    <div id="vuln-panel">
+      <button class="btn-vulnscan" id="btn-vulnscan" onclick="runVulnScan()">🛡 Scan for Vulnerabilities</button>
+      <div id="vuln-results" style="margin-top:10px"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── state ──────────────────────────────────────────────────────────────────
+let scanState = 'idle';
+let evtSource  = null;
+let results    = [];
+let totalHosts = 0; // estimated from textarea
+let prevReqs   = 0, prevElapsed = 0;
+let rpsVal = 0, hpsVal = 0;
+
+// ── file upload ────────────────────────────────────────────────────────────
+document.getElementById('file-input').addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    document.getElementById('hosts-ta').value = ev.target.result;
+    document.getElementById('file-name').textContent = file.name;
+  };
+  reader.readAsText(file);
+});
+
+// drag-and-drop on textarea
+const dz = document.getElementById('drop-zone');
+dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag-over'); });
+dz.addEventListener('dragleave', () => dz.classList.remove('drag-over'));
+dz.addEventListener('drop', e => {
+  e.preventDefault();
+  dz.classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    document.getElementById('hosts-ta').value = ev.target.result;
+    document.getElementById('file-name').textContent = file.name;
+  };
+  reader.readAsText(file);
+});
+
+// ── scan control ───────────────────────────────────────────────────────────
+async function startScan() {
+  const hosts = document.getElementById('hosts-ta').value.trim();
+  if (!hosts) { alert('Please enter at least one target host.'); return; }
+
+  totalHosts = hosts.split('\n').filter(l => l.trim() && !l.startsWith('#')).length;
+  results = [];
+  prevReqs = 0; prevElapsed = 0; rpsVal = 0; hpsVal = 0;
+  renderResults();
+  setUIState('running');
+
+  const body = {
+    hosts,
+    threads:     parseInt(document.getElementById('f-threads').value)    || 8,
+    goroutines:  parseInt(document.getElementById('f-goroutines').value) || 900,
+    timeout:     parseInt(document.getElementById('f-timeout').value)    || 30,
+    dnsTimeout:  parseInt(document.getElementById('f-dnstimeout').value) || 2,
+    pathsLimit:  parseInt(document.getElementById('f-pathslimit').value) || 0,
+    outputDir:   document.getElementById('f-outputdir').value.trim()     || 'envs',
+    saveUnknown: document.getElementById('f-saveunknown').checked,
+    cidrMode:    document.getElementById('f-cidrmode').checked,
+  };
+
+  try {
+    const res = await fetch('/api/start', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+    if (!res.ok) { const t = await res.text(); alert('Error: ' + t); setUIState('idle'); return; }
+  } catch(e) { alert('Network error: ' + e); setUIState('idle'); return; }
+
+  connectSSE();
+}
+
+async function stopScan() {
+  await fetch('/api/stop', { method:'POST' });
+}
+
+// ── SSE ────────────────────────────────────────────────────────────────────
+function connectSSE() {
+  if (evtSource) { evtSource.close(); }
+  evtSource = new EventSource('/api/events');
+  evtSource.onmessage = e => handleEvent(JSON.parse(e.data));
+  evtSource.onerror   = () => {};
+}
+
+function handleEvent(ev) {
+  if (ev.type === 'progress' || ev.type === 'done') {
+    updateProgress(ev);
+    if (ev.type === 'done') { setUIState('done'); }
+  } else if (ev.type === 'found') {
+    if (ev.record) { results.push(ev.record); renderResults(); }
+  } else if (ev.type === 'stopped') {
+    setUIState('idle');
+  } else if (ev.type === 'error') {
+    setUIState('error');
+    alert('Scan error: ' + ev.message);
+  }
+}
+
+// ── progress display ───────────────────────────────────────────────────────
+function updateProgress(ev) {
+  const h = ev.hosts || 0, f = ev.found || 0, sv = ev.saved || 0, r = ev.requests || 0;
+  const el = ev.elapsed || 0;
+
+  // rates
+  const dEl = el - prevElapsed;
+  const dR  = r  - prevReqs;
+  if (dEl > 0) {
+    rpsVal = Math.round(dR  / dEl);
+    hpsVal = Math.round(h   / el); // cumulative hosts/s
+  }
+  prevElapsed = el; prevReqs = r;
+
+  set('s-hosts',   fmt(h));
+  set('s-found',   fmt(f));
+  set('s-saved',   fmt(sv));
+  set('s-requests', fmt(r) + ' req');
+  set('s-elapsed',  fmtTime(el));
+  set('s-elapsed2', fmtTime(el));
+  set('s-rps',      fmt(rpsVal));
+  set('s-hps',      fmt(hpsVal));
+
+  const pct = totalHosts > 0 ? Math.min(100, (h / totalHosts) * 100).toFixed(1) : null;
+  document.getElementById('progress-bar').style.width = pct ? pct + '%' : '0%';
+  set('s-pct', pct ? pct + '%' : '—');
+}
+
+// ── results table ──────────────────────────────────────────────────────────
+function renderResults() {
+  const n = results.length;
+  set('results-count', n);
+  document.getElementById('btn-download').style.display = n > 0 ? 'inline-block' : 'none';
+  document.getElementById('btn-clear').style.display    = n > 0 ? 'inline-block' : 'none';
+  document.getElementById('no-results').style.display   = n > 0 ? 'none' : 'flex';
+  document.getElementById('results-table').style.display = n > 0 ? 'table' : 'none';
+
+  // Append only the new last row instead of re-rendering all (performance)
+  if (n === 0) { document.getElementById('results-tbody').innerHTML = ''; return; }
+  const rec = results[n - 1];
+  const tr  = buildRow(rec, n - 1);
+  document.getElementById('results-tbody').appendChild(tr);
+}
+
+function buildRow(rec, idx) {
+  const tr = document.createElement('tr');
+  tr.onclick = () => openModal(idx);
+
+  const preview = (rec.indicators && rec.indicators.length)
+    ? rec.indicators[0].substring(0, 60)
+    : (rec.content || '').substring(0, 60);
+
+  const modeCls = rec.mode === 'https-dns' ? 'https-dns' : rec.mode;
+  const validCls = rec.valid ? 'valid' : 'unknown';
+
+  tr.innerHTML = `
+    <td title="${esc(rec.host)}">${esc(rec.host)}</td>
+    <td title="${esc(rec.path)}">${esc(shortPath(rec.path))}</td>
+    <td><span class="badge ${modeCls}">${esc(rec.mode)}</span></td>
+    <td><span class="badge ${validCls}">${rec.valid ? 'valid' : 'unknown'}</span></td>
+    <td style="color:var(--muted);font-family:monospace" title="${esc(preview)}">${esc(preview)}</td>
+  `;
+  return tr;
+}
+
+function clearResults() {
+  results = [];
+  document.getElementById('results-tbody').innerHTML = '';
+  renderResults();
+}
+
+function downloadJSON() {
+  const blob = new Blob([JSON.stringify(results, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'env-checker-results.json';
+  a.click();
+}
+
+// ── modal ──────────────────────────────────────────────────────────────────
+function openModal(idx) {
+  const rec = results[idx];
+  if (!rec) return;
+  modalIdx = idx;
+
+  set('modal-host', rec.host + '  ' + rec.path);
+  set('modal-meta', `mode: ${rec.mode}  |  status: ${rec.valid ? 'VALID' : 'UNKNOWN'}  |  ${rec.metadata ? rec.metadata.status || '' : ''}`);
+
+  const indEl = document.getElementById('modal-indicators');
+  indEl.innerHTML = '';
+  if (rec.indicators && rec.indicators.length) {
+    rec.indicators.forEach(i => {
+      const d = document.createElement('div');
+      d.className = 'indicator';
+      d.textContent = i;
+      indEl.appendChild(d);
+    });
+  }
+  set('modal-content', rec.content || '(empty)');
+
+  // Reset cred panel
+  const out = document.getElementById('cred-results');
+  out.style.display = 'none';
+  out.innerHTML = '';
+  document.getElementById('btn-validate').disabled = false;
+  document.getElementById('btn-validate').textContent = '🔑 Validate Credentials';
+
+  // Reset vuln panel
+  document.getElementById('vuln-results').innerHTML = '';
+  document.getElementById('btn-vulnscan').disabled = false;
+  document.getElementById('btn-vulnscan').textContent = '🛡 Scan for Vulnerabilities';
+  if (vulnSSE) { vulnSSE.close(); vulnSSE = null; }
+
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+function closeModal(e) {
+  if (!e || e.target === document.getElementById('modal-overlay') || e.currentTarget.id === 'modal-close') {
+    document.getElementById('modal-overlay').classList.remove('open');
+  }
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal({target:document.getElementById('modal-overlay')}); });
+
+// ── UI state machine ───────────────────────────────────────────────────────
+function setUIState(state) {
+  scanState = state;
+  const dot  = document.getElementById('status-dot');
+  const txt  = document.getElementById('status-text');
+  const btnS = document.getElementById('btn-start');
+  const btnX = document.getElementById('btn-stop');
+  const idle = document.getElementById('idle-msg');
+  const prog = document.getElementById('progress-section');
+
+  dot.className = state;
+  const labels = {idle:'Idle', running:'Scanning…', done:'Done', error:'Error', stopping:'Stopping…'};
+  txt.textContent = labels[state] || state;
+
+  btnS.disabled   = (state === 'running' || state === 'stopping');
+  btnX.style.display = (state === 'running') ? 'block' : 'none';
+
+  if (state === 'idle') {
+    idle.style.display = 'flex';
+    prog.style.display = 'none';
+  } else {
+    idle.style.display = 'none';
+    prog.style.display = 'block';
+  }
+
+  if (state === 'done' || state === 'idle') {
+    if (evtSource) { evtSource.close(); evtSource = null; }
+  }
+}
+
+// ── helpers ────────────────────────────────────────────────────────────────
+function set(id, v) { const el = document.getElementById(id); if (el) el.textContent = v; }
+function esc(s){ const d=document.createElement('div'); d.textContent=s||''; return d.innerHTML; }
+function fmt(n){ return n >= 1e6 ? (n/1e6).toFixed(1)+'M' : n >= 1e3 ? (n/1e3).toFixed(1)+'K' : String(n); }
+function fmtTime(s){ const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),sec=Math.floor(s%60); return h?`${h}h ${m}m`:m?`${m}m ${sec}s`:`${sec}s`; }
+function shortPath(p){ return p && p.length > 32 ? '…'+p.slice(-30) : p||''; }
+
+// ── auto-discover ──────────────────────────────────────────────────────────
+let discoverSSE = null;
+
+function discoverHosts() {
+  const domain = document.getElementById('discover-domain').value.trim();
+  if (!domain) { alert('Enter a domain name first (e.g. example.com)'); return; }
+
+  if (discoverSSE) { discoverSSE.close(); discoverSSE = null; }
+
+  const btn    = document.getElementById('btn-discover');
+  const status = document.getElementById('discover-status');
+  const ta     = document.getElementById('hosts-ta');
+
+  btn.disabled = true;
+  btn.textContent = '⏳ Discovering…';
+  status.textContent = 'Connecting…';
+  status.style.color = 'var(--muted)';
+  ta.value = '';
+
+  const discovered = [];
+
+  discoverSSE = new EventSource('/api/discover?domain=' + encodeURIComponent(domain));
+  discoverSSE.onmessage = e => {
+    const ev = JSON.parse(e.data);
+    if (ev.type === 'status') {
+      status.textContent = ev.data;
+    } else if (ev.type === 'host') {
+      discovered.push(ev.data);
+      ta.value = discovered.join('\n');
+      status.textContent = `Found ${discovered.length} live host(s)…`;
+      status.style.color = 'var(--green)';
+    } else if (ev.type === 'done') {
+      discoverSSE.close(); discoverSSE = null;
+      btn.disabled = false;
+      btn.textContent = '🔍 Discover';
+      status.textContent = ev.data;
+      status.style.color = discovered.length > 0 ? 'var(--green)' : 'var(--muted)';
+      if (discovered.length === 0) {
+        status.textContent += ' — try adding it manually';
+        ta.value = domain; // at least put the apex domain
+      }
+    }
+  };
+  discoverSSE.onerror = () => {
+    discoverSSE.close(); discoverSSE = null;
+    btn.disabled = false;
+    btn.textContent = '🔍 Discover';
+    status.textContent = 'Connection error — try again';
+    status.style.color = 'var(--red)';
+  };
+}
+
+// ── tab switching ──────────────────────────────────────────────────────────
+function switchTab(tab) {
+  document.getElementById('scan-view').style.display   = tab === 'scan'   ? '' : 'none';
+  document.getElementById('daemon-view').style.display = tab === 'daemon' ? 'grid' : 'none';
+  document.getElementById('tab-scan').classList.toggle('active',   tab === 'scan');
+  document.getElementById('tab-daemon').classList.toggle('active', tab === 'daemon');
+  if (tab === 'daemon') initDaemonTab();
+}
+
+// ── daemon tab ─────────────────────────────────────────────────────────────
+let daemonSSE = null;
+let daemonRunning = false;
+
+async function loadDorkCount() {
+  try {
+    const res = await fetch('/api/dork/list');
+    const data = await res.json();
+    document.getElementById('dork-count').textContent =
+      `📋 ${data.total} dorks loaded (${data.builtin?.length || 0} built-in + ${data.custom?.length || 0} custom)`;
+  } catch(e) {}
+}
+
+async function updateDorks() {
+  const btn = document.getElementById('btn-update-dorks');
+  const status = document.getElementById('dork-update-status');
+  btn.disabled = true;
+  btn.textContent = '⏳ Fetching from ExploitDB, NVD, GitHub, PacketStorm…';
+  status.style.color = 'var(--muted)';
+  status.textContent = 'Connecting to security sources…';
+
+  try {
+    const res = await fetch('/api/dork/update', { method: 'POST' });
+    if (!res.ok) { status.textContent = 'Error: ' + await res.text(); return; }
+    const data = await res.json();
+    if (data.total !== undefined) {
+      status.style.color = data.total > 0 ? 'var(--green)' : 'var(--muted)';
+      status.textContent = data.total > 0
+        ? `✓ Added ${data.total} new dorks from security sources`
+        : '✓ Already up to date — no new dorks found';
+      appendLog(`[dork/update] +${data.total} new dorks added`);
+      loadDorkCount();
+    } else {
+      status.textContent = '✓ Update started in background';
+    }
+  } catch(e) {
+    status.style.color = 'var(--red)';
+    status.textContent = 'Error: ' + e;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '🔄 Update Dorks from ExploitDB / NVD / GitHub';
+  }
+}
+
+async function initDaemonTab() {
+  // Load config into editor
+  try {
+    const res = await fetch('/api/daemon/config');
+    const text = await res.text();
+    // Pretty-print if valid JSON
+    try { document.getElementById('daemon-cfg-editor').value = JSON.stringify(JSON.parse(text), null, 2); }
+    catch { document.getElementById('daemon-cfg-editor').value = text; }
+  } catch(e) {}
+
+  // Get current status
+  try {
+    const res = await fetch('/api/daemon/status');
+    const data = await res.json();
+    setDaemonUIState(data.state);
+  } catch(e) {}
+
+  // Connect log SSE if not already
+  if (!daemonSSE) connectDaemonSSE();
+  loadDorkCount();
+}
+
+function connectDaemonSSE() {
+  if (daemonSSE) daemonSSE.close();
+  daemonSSE = new EventSource('/api/daemon/logs');
+  daemonSSE.onmessage = e => {
+    const ev = JSON.parse(e.data);
+    if (ev.type === 'log')     appendLog(ev.line);
+    if (ev.type === 'stopped') setDaemonUIState('idle');
+  };
+  daemonSSE.onerror = () => {};
+}
+
+function appendLog(line) {
+  const wrap = document.getElementById('daemon-log-wrap');
+  const div = document.createElement('div');
+  div.className = 'log-line';
+  if (line.includes('VALID CREDS'))  div.className += ' valid';
+  else if (line.includes('found:'))  div.className += ' found';
+  else if (line.includes('error'))   div.className += ' error';
+  div.textContent = line;
+  wrap.appendChild(div);
+  wrap.scrollTop = wrap.scrollHeight;
+  // keep at most 1000 lines in DOM
+  while (wrap.children.length > 1000) wrap.removeChild(wrap.firstChild);
+}
+
+async function saveDaemonConfig() {
+  const text = document.getElementById('daemon-cfg-editor').value;
+  let body;
+  try { body = JSON.stringify(JSON.parse(text)); }
+  catch(e) { alert('Invalid JSON: ' + e.message); return; }
+  const res = await fetch('/api/daemon/config', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body,
+  });
+  if (!res.ok) { alert('Save failed: ' + await res.text()); return; }
+  appendLog('[ui] Config saved.');
+}
+
+async function startDaemon() {
+  await saveDaemonConfig();
+  const res = await fetch('/api/daemon/start', { method: 'POST' });
+  if (!res.ok) { alert('Start failed: ' + await res.text()); return; }
+  setDaemonUIState('running');
+  appendLog('[ui] Daemon started.');
+}
+
+async function stopDaemon() {
+  await fetch('/api/daemon/stop', { method: 'POST' });
+  appendLog('[ui] Stop signal sent…');
+}
+
+function setDaemonUIState(state) {
+  daemonRunning = state === 'running';
+  document.getElementById('daemon-dot').className = daemonRunning ? 'running' : '';
+  document.getElementById('daemon-state-txt').textContent = daemonRunning ? 'Running — scanning 24/7' : 'Idle';
+  document.getElementById('btn-daemon-start').style.display = daemonRunning ? 'none' : 'flex';
+  document.getElementById('btn-daemon-stop').style.display  = daemonRunning ? 'flex' : 'none';
+  document.getElementById('btn-daemon-start').disabled = daemonRunning;
+}
+
+// ── vulnerability scan ─────────────────────────────────────────────────────
+let vulnSSE = null;
+
+function runVulnScan() {
+  const rec = results[modalIdx];
+  if (!rec) return;
+
+  const btn = document.getElementById('btn-vulnscan');
+  const out = document.getElementById('vuln-results');
+  btn.disabled = true;
+  btn.textContent = '⏳ Scanning…';
+  out.innerHTML = '<div class="vuln-summary">Running all checks…</div>';
+
+  if (vulnSSE) { vulnSSE.close(); vulnSSE = null; }
+
+  const findings = [];
+  vulnSSE = new EventSource('/api/vulnscan?host=' + encodeURIComponent(rec.host));
+  vulnSSE.onmessage = e => {
+    const ev = JSON.parse(e.data);
+    if (ev.type === 'status') {
+      out.querySelector('.vuln-summary').textContent = ev.data;
+    } else if (ev.type === 'finding') {
+      findings.push(ev.data);
+      renderVulnFindings(findings, out);
+    } else if (ev.type === 'done') {
+      vulnSSE.close(); vulnSSE = null;
+      btn.disabled = false;
+      btn.textContent = '🛡 Scan for Vulnerabilities';
+      if (findings.length === 0) {
+        out.innerHTML = '<div class="vuln-summary" style="color:var(--green)">✓ No vulnerabilities detected.</div>';
+      } else {
+        const summary = out.querySelector('.vuln-summary');
+        if (summary) summary.textContent = ev.data;
+      }
+    }
+  };
+  vulnSSE.onerror = () => {
+    vulnSSE.close(); vulnSSE = null;
+    btn.disabled = false;
+    btn.textContent = '🛡 Scan for Vulnerabilities';
+  };
+}
+
+function renderVulnFindings(findings, container) {
+  container.innerHTML = '';
+  const summary = document.createElement('div');
+  summary.className = 'vuln-summary';
+  const counts = {};
+  findings.forEach(f => { counts[f.severity] = (counts[f.severity]||0) + 1; });
+  const parts = ['critical','high','medium','low'].filter(s=>counts[s]).map(s=>`${counts[s]} ${s}`);
+  summary.textContent = `${findings.length} finding(s): ${parts.join(', ')}`;
+  container.appendChild(summary);
+
+  // Sort by severity
+  const order = {critical:0,high:1,medium:2,low:3,info:4};
+  findings.slice().sort((a,b)=>(order[a.severity]||9)-(order[b.severity]||9)).forEach(f => {
+    const div = document.createElement('div');
+    div.className = 'vuln-row ' + f.severity;
+    div.innerHTML = `
+      <span class="vuln-sev">${esc(f.severity)}</span>
+      <div class="vuln-title">${esc(f.title)}</div>
+      <div class="vuln-url">${esc(f.url)}</div>
+      <div class="vuln-detail">${esc(f.detail)}</div>
+      ${f.evidence ? `<details style="margin-top:4px"><summary style="font-size:11px;color:var(--muted);cursor:pointer">Evidence</summary><pre style="font-size:11px;margin-top:4px;white-space:pre-wrap;word-break:break-all">${esc(f.evidence)}</pre></details>` : ''}
+    `;
+    container.appendChild(div);
+  });
+}
+
+// ── credential validation ──────────────────────────────────────────────────
+let modalIdx = -1;
+
+async function validateCreds() {
+  const btn = document.getElementById('btn-validate');
+  const out = document.getElementById('cred-results');
+  btn.disabled = true;
+  btn.textContent = '⏳ Checking…';
+  out.style.display = 'none';
+  out.innerHTML = '';
+
+  const body = modalIdx >= 0
+    ? { index: modalIdx }
+    : { content: document.getElementById('modal-content').textContent };
+
+  let report;
+  try {
+    const res = await fetch('/api/check-creds', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) { alert('Check failed: ' + await res.text()); return; }
+    report = await res.json();
+  } catch(e) { alert('Network error: ' + e); return; }
+  finally {
+    btn.disabled = false;
+    btn.textContent = '🔑 Validate Credentials';
+  }
+
+  renderCredReport(report, out);
+}
+
+const SVC_LABELS = {
+  smtp:'SMTP', aws:'AWS STS', sendgrid:'SendGrid', mailgun:'Mailgun',
+  postmark:'Postmark', sparkpost:'SparkPost', stripe:'Stripe',
+  github:'GitHub', mailchimp:'Mailchimp',
+};
+
+function renderCredReport(r, el) {
+  el.innerHTML = '';
+
+  const summary = document.createElement('div');
+  summary.className = 'cred-summary ' + (r.hasValid ? 'ok' : 'none');
+  summary.textContent = r.hasValid
+    ? '✓ Valid credentials found — ready to report!'
+    : 'No valid credentials confirmed in this file.';
+  el.appendChild(summary);
+
+  const services = ['smtp','aws','sendgrid','mailgun','postmark','sparkpost','stripe','github','mailchimp'];
+  for (const svc of services) {
+    const data = r[svc];
+    if (!data) continue;
+
+    const valid = svc === 'smtp' ? data.authValid : data.valid;
+    const msg   = data.message || data.error || '';
+    const skip  = !msg || msg === 'no ' + svc + ' config extracted';
+    if (skip && !valid) continue; // hide services with nothing to say
+
+    const row = document.createElement('div');
+    row.className = 'cred-row';
+
+    const lbl = document.createElement('span');
+    lbl.className = 'cred-svc';
+    lbl.textContent = SVC_LABELS[svc] || svc;
+
+    const msgEl = document.createElement('span');
+    msgEl.className = 'cred-msg ' + (valid ? 'ok' : skip ? 'skip' : 'fail');
+    msgEl.textContent = msg;
+
+    row.appendChild(lbl);
+    row.appendChild(msgEl);
+    el.appendChild(row);
+  }
+
+  el.style.display = 'block';
+}
+</script>
+</body>
+</html>

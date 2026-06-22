@@ -1,5 +1,0 @@
-{
-  "smtp_checker_rage": true,
-  "mass_mailer_threads": 500,
-  "mass_mailer_timeout": 2
-}

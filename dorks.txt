@@ -1,0 +1,14 @@
+# Custom dorks — add your own below (one per line, # for comments)
+# These are merged with the built-in list automatically.
+
+filetype:sql intext:ebay
+filetype:sql intext:seller
+intitle:"index of" "backup.sql"
+intitle:"index of" "database.sql"
+site:pastebin.com intext:ebay
+intitle:"index of" "backup.sql" intext:ebay
+intitle:"index of" "database.sql" intext:seller
+site:pastebin.com intext:ebay intext:email
+ext:sql intext:password intext:ebay
+site:mediafire.com "ebay" "sql"
+site:mega.nz "ebay" "database"

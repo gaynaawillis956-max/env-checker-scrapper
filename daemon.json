@@ -1,0 +1,34 @@
+{
+  "targets": [
+    "167.99.0.0/16",
+    "164.90.0.0/16",
+    "45.32.0.0/16",
+    "65.108.0.0/16",
+    "95.216.0.0/16",
+    "194.233.64.0/18"
+  ],
+  "telegram": {
+    "token": "8740309264:AAEcOWZ6IGm5xFSgxQSsB3kaY5Nr0tng4nQ",
+    "chat_id": "157828443"
+  },
+  "dork": {
+    "engine": "duckduckgo",
+    "bing_api_key": "",
+    "custom_file": "dorks.txt",
+    "max_per_dork": 10,
+    "delay_seconds": 8,
+    "use_builtin": true,
+    "categories": []
+  },
+  "dork_update_interval_hours": 12,
+  "scan_interval_hours": 6,
+  "cooldown_hours": 24,
+  "threads": 8,
+  "goroutines": 900,
+  "timeout_seconds": 10,
+  "dns_timeout_seconds": 2,
+  "output_dir": "daemon-results",
+  "state_file": "daemon-state.json",
+  "save_unknown": false,
+  "paths_limit": 0
+}
