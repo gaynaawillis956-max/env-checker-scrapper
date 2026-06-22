@@ -1,0 +1,32 @@
+[
+  {
+    "pid": "fd70bcb4",
+    "tool": "mass-mailer",
+    "file": "ab1820_185K_MAILACCESS_COMBO.txt",
+    "start": 1781972917.6725085,
+    "end": 1781972922.8395405,
+    "code": 1,
+    "duration": 5.2,
+    "metrics": {}
+  },
+  {
+    "pid": "1c29e817",
+    "tool": "mass-mailer",
+    "file": "ab1820_185K_MAILACCESS_COMBO.txt",
+    "start": 1781972642.2160938,
+    "end": 1781972649.0509458,
+    "code": 1,
+    "duration": 6.8,
+    "metrics": {}
+  },
+  {
+    "pid": "08c4fb19",
+    "tool": "smtp-checker",
+    "file": "ab1820_185K_MAILACCESS_COMBO.txt",
+    "start": 1781970010.206086,
+    "end": 1781970015.3787498,
+    "code": 1,
+    "duration": 5.2,
+    "metrics": {}
+  }
+]

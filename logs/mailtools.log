@@ -1,0 +1,45 @@
+2026-06-20 10:17:25,781 [INFO] config.json updated with speed defaults
+2026-06-20 10:17:30,093 [INFO] Config loaded: C:\Users\Lenovo-\Documents\checker and sender\mailer\unified-mailer\config.json
+2026-06-20 10:17:54,806 [INFO] Config loaded: C:\Users\Lenovo-\Documents\checker and sender\mailer\unified-mailer\config.json
+2026-06-20 10:17:54,816 [INFO] Web server starting on 127.0.0.1:5000
+2026-06-20 10:27:26,185 [INFO] Config loaded: C:\Users\Lenovo-\Documents\checker and sender\mailer\unified-mailer\config.json
+2026-06-20 10:27:26,196 [INFO] Web server starting on 127.0.0.1:5000
+2026-06-20 10:38:56,416 [INFO] Upload: 185K_MAILACCESS_COMBO.txt (185549 lines, 6565754B)
+2026-06-20 10:40:08,526 [INFO] SMTP Checker: ab1820_185K_MAILACCESS_COMBO.txt (rage=True)
+2026-06-20 10:40:10,206 [INFO] Launched [smtp-checker] pid=08c4fb19: C:\Users\Lenovo-\Documents\checker and sender\mailer\unified-mailer\mailpass2smtp.py C:\Users\Lenovo-\AppData\Local\Temp\mailtools_gui\uploads\ab1820_185K_MAILACCESS_COMBO.txt
+2026-06-20 10:40:13,522 [DEBUG] [08c4fb19] pump Enter
+2026-06-20 10:40:15,369 [INFO] Process 08c4fb19 stopped by user
+2026-06-20 10:40:15,378 [INFO] Process 08c4fb19 exited code=1
+2026-06-20 11:17:02,959 [INFO] Config loaded: C:\Users\Lenovo-\Documents\checker and sender\mailer\unified-mailer\config.json
+2026-06-20 11:17:03,021 [INFO] MailTools GUI v4.0 started — http://10.161.45.155:5000
+2026-06-20 11:23:56,159 [INFO] Upload: 4.html (61 lines, 41940B)
+2026-06-20 11:24:02,161 [INFO] Mass Mailer: test-only mode, list = ['kyampeireruthabwooli@gmail.com']
+2026-06-20 11:24:02,162 [INFO] Mass Mailer: ab1820_185K_MAILACCESS_COMBO.txt
+2026-06-20 11:24:02,216 [INFO] Launched [mass-mailer] pid=1c29e817: C:\Users\Lenovo-\Documents\checker and sender\mailer\unified-mailer\madcatmailer.py C:\Users\Lenovo-\AppData\Local\Temp\mailtools_gui\uploads\ddf45198.config
+2026-06-20 11:24:05,217 [DEBUG] [1c29e817] pump Enter
+2026-06-20 11:24:08,218 [DEBUG] [1c29e817] pump Enter
+2026-06-20 11:24:09,004 [ERROR] [1c29e817] [x] "BUY SPAMMING AND CRACKING TOOLS + LESSONS" is not like "host|port|username|password"
+2026-06-20 11:24:09,050 [INFO] Process 1c29e817 exited code=1
+2026-06-20 11:28:37,634 [INFO] Mass Mailer: test-only mode, list = ['kyampeireruthabwooli@gmail.com']
+2026-06-20 11:28:37,635 [INFO] Mass Mailer: ab1820_185K_MAILACCESS_COMBO.txt
+2026-06-20 11:28:37,672 [INFO] Launched [mass-mailer] pid=fd70bcb4: C:\Users\Lenovo-\Documents\checker and sender\mailer\unified-mailer\madcatmailer.py C:\Users\Lenovo-\AppData\Local\Temp\mailtools_gui\uploads\f8eb5b35.config
+2026-06-20 11:28:40,673 [DEBUG] [fd70bcb4] pump Enter
+2026-06-20 11:28:42,788 [ERROR] [fd70bcb4] [x] "BUY SPAMMING AND CRACKING TOOLS + LESSONS" is not like "host|port|username|password"
+2026-06-20 11:28:42,839 [INFO] Process fd70bcb4 exited code=1
+2026-06-20 12:41:21,383 [INFO] Upload: fresh_20260528_034404_58.0M_lines_smtp.txt (13789 lines, 760412B)
+2026-06-20 12:43:11,596 [INFO] Upload: 4.html (61 lines, 41940B)
+2026-06-20 12:45:37,187 [INFO] Deliverability 4aa00847 stopped by user
+2026-06-20 12:45:52,398 [INFO] Deliverability 78317d13 stopped by user
+2026-06-20 12:47:17,362 [INFO] Deliverability f6272974 stopped by user
+2026-06-20 12:47:44,368 [INFO] Deliverability 79a8fb1c stopped by user
+2026-06-20 14:47:26,229 [DEBUG] _deliv_gc: evicted 2 stale entries
+2026-06-20 14:52:26,230 [DEBUG] _deliv_gc: evicted 1 stale entries
+2026-06-20 17:37:26,408 [DEBUG] _deliv_gc: evicted 1 stale entries
+2026-06-20 22:50:04,277 [INFO] Config loaded: C:\Users\Lenovo-\Documents\checker and sender\mailer\unified-mailer\config.json
+2026-06-20 22:50:04,287 [INFO] Web server starting on 127.0.0.1:5000
+2026-06-20 22:51:10,962 [INFO] Config loaded: C:\Users\Lenovo-\Documents\checker and sender\mailer\unified-mailer\config.json
+2026-06-20 22:58:44,889 [INFO] Config loaded: C:\Users\Lenovo-\Documents\checker and sender\mailer\unified-mailer\config.json
+2026-06-20 23:02:59,428 [INFO] Config loaded: C:\Users\Lenovo-\Documents\checker and sender\mailer\unified-mailer\config.json
+2026-06-20 23:04:47,657 [INFO] Config loaded: C:\Users\Lenovo-\Documents\checker and sender\mailer\unified-mailer\config.json
+2026-06-20 23:43:58,148 [INFO] Config loaded: C:\Users\Lenovo-\Documents\checker and sender\mailer\unified-mailer\config.json
+2026-06-20 23:43:58,156 [INFO] Web server starting on 127.0.0.1:5000

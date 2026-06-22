@@ -1,0 +1,163 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                 📧 UNIFIED MAILER - QUICK REFERENCE CARD                     ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 🚀 GETTING STARTED (One-Click)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  START WEB SERVER:        RUN-WEB.bat
+  OPEN BROWSER:            http://127.0.0.1:5000
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 📧 TEMPLATE MANAGEMENT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  QUICK SETUP:             QUICK-START-TEMPLATES.bat
+  MANAGE TEMPLATES:        MANAGE-TEMPLATES.bat
+  FULL DOCS:               TEMPLATES-README.md
+
+  Template Manager Options:
+    [1] Create sample templates     → Adds 4 example templates
+    [2] Add HTML template           → Create custom HTML template
+    [3] Add text template           → Create plain text template
+    [4] List all templates          → Show all templates
+    [5] Get next template           → See rotation order
+    [6] Delete template             → Remove a template
+    [7] Campaign rotation           → Preview rotation for N recipients
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 🔐 PASSWORD & ACCOUNT MANAGEMENT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  MANAGE PASSWORDS:        MANAGE-PASSWORDS.bat
+  CREDENTIAL OPTIONS:
+    [1] Add new credential          → Save email/password locally
+    [2] List saved credentials      → View all saved accounts
+    [3] Get credential              → Reveal saved password
+    [4] Delete credential           → Remove saved account
+    [5] Export as SMTP list         → Export ready-to-use format
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 📧 MASS MAILER WORKFLOW
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Step 1: Start Web Server
+    → RUN-WEB.bat
+    → Open http://127.0.0.1:5000
+
+  Step 2: Upload SMTP Accounts
+    → Go to "Mass Mailer" tab
+    → Upload smtp_list.txt (format: host:port:user:pass)
+    → OR use saved credentials from MANAGE-PASSWORDS.bat
+
+  Step 3: Enter Recipients
+    → Paste email list or upload file
+    → Format: one email per line
+
+  Step 4: Select Template or Write HTML
+    → Choose from "Use Template" dropdown
+    → OR paste custom HTML in "Email Body"
+    → Select subject line
+
+  Step 5: Send
+    → Click "Send"
+    → Monitor progress in real-time
+    → View success/fail counts
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 🧪 TESTING & VERIFICATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  CHECK DELIVERABILITY:    Go to "Email Validator" tab
+  TEST SMTP ACCOUNTS:      Go to "SMTP Checker" tab
+  TEST GMAIL DELIVERY:     Go to "Gmail Deliverability Test" panel
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 📂 FILE FORMATS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  SMTP List Format:
+    smtp.gmail.com:587:user@gmail.com:apppassword
+    smtp-mail.outlook.com:587:user@outlook.com:password
+    smtp.mail.yahoo.com:465:user@yahoo.com:password
+
+  Recipient List Format:
+    john@example.com
+    jane@example.com
+    bob@test.com
+
+  Template Variables:
+    {{NAME}}    → Recipient name
+    {{MESSAGE}} → Custom message
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 🐛 TROUBLESHOOTING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Job Exited With Error?
+    ✓ Check SMTP list format is correct
+    ✓ Verify recipient emails exist
+    ✓ Ensure mail body/template is provided
+    ✓ Test with 5 emails first
+
+  Templates Not Showing?
+    ✓ Run: MANAGE-TEMPLATES.bat → [1] Create samples
+    ✓ Refresh web page (F5)
+    ✓ Check templates.json exists
+
+  Password Save Issues?
+    ✓ Run: MANAGE-PASSWORDS.bat
+    ✓ Use [1] Add new credential
+    ✓ Check saved_credentials.json
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 📚 DOCUMENTATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Full Updates:           UPDATE-SUMMARY.md
+  Template Guide:         TEMPLATES-README.md
+  This Card:              QUICK-REFERENCE.txt
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ ⚡ COMMON TASKS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Send 100 emails with 3 templates?
+    1. MANAGE-TEMPLATES.bat → [1] Sample or add custom
+    2. RUN-WEB.bat
+    3. Upload SMTP list → Mass Mailer tab
+    4. Paste 100 recipient emails
+    5. Select template from dropdown
+    6. Click Send → Templates auto-rotate
+
+  Save Gmail password forever?
+    1. MANAGE-PASSWORDS.bat → [1] Add credential
+    2. Email: your@gmail.com
+    3. App password (not regular password)
+    4. Now auto-loads in Web Dashboard
+
+  Test if SMTP works?
+    1. RUN-WEB.bat
+    2. Go to "SMTP Checker" tab
+    3. Upload SMTP list
+    4. Click "Start"
+    5. View results
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 💡 TIPS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  ✓ Create 3-5 templates for best results
+  ✓ Vary subject lines in different templates
+  ✓ Test with small list before large campaign
+  ✓ Monitor if templates trigger spam filters
+  ✓ Keep templates similar in tone (not drastically different)
+  ✓ Save important passwords in MANAGE-PASSWORDS
+  ✓ Rotate SMTP accounts (don't use just one)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Ready to start? → RUN-WEB.bat
+Need help?     → See TEMPLATES-README.md
+All updates?   → See UPDATE-SUMMARY.md
